@@ -4,6 +4,7 @@ This library was developed in C language and does not contain external dependenc
 
 The functions of the library allow you to easily work on the generation / validation of Italian codice fiscale, a simple example: 
 
+```c
 #include "cf.h"
 
 int main(void) {
@@ -23,10 +24,12 @@ int main(void) {
 	free(result);
 	cf_tax_code_free(cf);
 }
+```
 
 by default the library works using a homocody level = 0 but this level can be increased up to 7
 as per the coding specifications of the Italian tax code you can then transform the example above in this way.
 
+```c
 #include "cf.h"
 
 int main(void) {
@@ -48,17 +51,24 @@ int main(void) {
 	free(result);
 	cf_tax_code_free(cf);
 }
+```
 
 However, it is possible to access the individual fields that make up the tax code in this way 
 
-    printf("Surname --> %s\n", cf->surname);
-    printf("Name --> %s\n", cf->name);
-    printf("Date of birth --> %s\n", cf->date_of_birth_and_sex);
-    printf("Birth country --> %s\n", cf->birth_country);
-    printf("Control character --> %c\n", cf->control_character);
+```c
+printf("Surname --> %s\n", cf->surname);
+printf("Name --> %s\n", cf->name);
+printf("Date of birth --> %s\n", cf->date_of_birth_and_sex);
+printf("Birth country --> %s\n", cf->birth_country);
+printf("Control character --> %c\n", cf->control_character);
+```
 
-You can find the binaries for Windows here: 
+You can find the binaries for Windows [here](https://github.com/marcoM32/cflib/releases).
 
+To compile program with this library as dynamic linking follow this example: 
 
+```sh
+$ gcc -I.src/ -L./build/ file.c -lcf
+```
 
-This library and its source code are released under the terms of this (license)[LICENSE].
+This library and its source code are released under the terms of this [license](https://github.com/marcoM32/cflib/blob/master/LICENSE).
