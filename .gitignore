@@ -1,0 +1,15 @@
+*.exe
+*.o
+*.res
+*.cbp
+*.depend
+*.layout
+bin/*
+obj/*
+test/*
+*.dll
+*.a
+*.def
+*.pdf
+/*.log
+/*.sh
