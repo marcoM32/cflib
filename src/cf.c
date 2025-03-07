@@ -12,14 +12,16 @@ static char* cf_encode_surname(person* param) {
     char* result = calloc(SURNAME_PART_LENGTH + 1, sizeof(char));
     if(!result) abort();
     for(size_t i = 0; i < strlen(param->surname) && c < SURNAME_PART_LENGTH; i++) {
-        if(cf_find_in_array(cf_consonants, param->surname[i])) {
-            result[c++] = param->surname[i];
+    	char tmp = toupper(param->surname[i]);
+        if(cf_find_in_array(cf_consonants, tmp)) {
+            result[c++] = tmp;
         }
     }
     if(c != SURNAME_PART_LENGTH) {
         for(size_t i = 0; i < strlen(param->surname) && c < SURNAME_PART_LENGTH; i++) {
-            if(cf_find_in_array(cf_vowels, param->surname[i])) {
-                result[c++] = param->surname[i];
+        	char tmp = toupper(param->surname[i]);
+            if(cf_find_in_array(cf_vowels, tmp)) {
+                result[c++] = tmp;
             }
         }
     }
@@ -38,24 +40,25 @@ static char* cf_encode_name(person* param) {
 
     size_t consonant_occurrences = 0;
     for(size_t i = 0; i < strlen(param->name); i++) {
-        if(cf_find_in_array(cf_consonants, param->name[i])) {
+        if(cf_find_in_array(cf_consonants, toupper(param->name[i]))) {
             consonant_occurrences++;
         }
     }
 
     for(size_t i = 0, w = 0; i < strlen(param->name) && c < NAME_PART_LENGTH; i++) {
-        if(cf_find_in_array(cf_consonants, param->name[i])) {
+    	char tmp = toupper(param->name[i]);
+        if(cf_find_in_array(cf_consonants, tmp)) {
             if(consonant_occurrences >= 4) {
                 // 1a, la 3a e la 4a
                 switch(w) {
                 case 0:
                 case 2:
                 case 3:
-                    result[c++] = param->name[i];
+                    result[c++] = tmp;
                     break;
                 }
             } else {
-                result[c++] = param->name[i];
+                result[c++] = tmp;
             }
             w++;
         }
@@ -63,8 +66,9 @@ static char* cf_encode_name(person* param) {
 
     if(c != NAME_PART_LENGTH) {
         for(size_t i = 0; i < strlen(param->name) && c < NAME_PART_LENGTH; i++) {
-            if(cf_find_in_array(cf_vowels, param->name[i])) {
-                result[c++] = param->name[i];
+        	char tmp = toupper(param->name[i]);
+            if(cf_find_in_array(cf_vowels, tmp)) {
+                result[c++] = tmp;
             }
         }
     }
@@ -85,7 +89,7 @@ static char* cf_encode_date_of_birth_and_sex(person* param, size_t omocode_level
             cf_months[param->birth_day->tm_mon], //
             YEAR_OF_BIRTH_LENGTH,
             param->birth_day->tm_mday + ((param->sex == FEMALE) ? FEMALE : 0)
-           );
+    );
 
     if(omocode_level > 3) {
         size_t to_remove = (omocode_level < OMOCODE_LEVEL_MAX) ? omocode_level - 3 : 4;
@@ -106,7 +110,7 @@ static char* cf_encode_birth_country(person* param, size_t omocode_level) {
     snprintf(result, BIRTH_COUNTRY_PART_LENGTH + 1, "%.*s", //
             BIRTH_COUNTRY_PART_LENGTH, //
             param->birth_country //
-           );
+    );
 
     if(omocode_level > OMOCODE_LEVEL_MIN) {
         size_t to_remove = (omocode_level > 3) ? 3 : omocode_level;
@@ -129,22 +133,29 @@ static char cf_encode_control_character(person* param, size_t omocode_level) {
                    DATE_OF_BIRTH_AND_SEX_PART_LENGTH +
                    BIRTH_COUNTRY_PART_LENGTH + 1;
 
-    char* tc = calloc(string_size //
-                   , //
-                   sizeof(char) //
-               );
+    char* tc = calloc(string_size, sizeof(char));
     if(!tc) abort();
 
-    snprintf(tc, string_size, "%.*s%.*s%.*s%.*s", //
-            SURNAME_PART_LENGTH, //
-            cf_encode_surname(param), //
-            NAME_PART_LENGTH, //
-            cf_encode_name(param), //
-            DATE_OF_BIRTH_AND_SEX_PART_LENGTH, //
-            cf_encode_date_of_birth_and_sex(param, omocode_level), //
-            BIRTH_COUNTRY_PART_LENGTH, //
-            cf_encode_birth_country(param, omocode_level) //
-           );
+	char* tmp_surname = cf_encode_surname(param);
+	char* tmp_name = cf_encode_name(param);
+	char* tmp_date_of_birth_and_sex = cf_encode_date_of_birth_and_sex(param, omocode_level);
+	char* tmp_birth_country = cf_encode_birth_country(param, omocode_level);
+
+    snprintf(tc, string_size, "%.*s%.*s%.*s%.*s",
+            SURNAME_PART_LENGTH,
+            tmp_surname,
+            NAME_PART_LENGTH,
+            tmp_name,
+            DATE_OF_BIRTH_AND_SEX_PART_LENGTH,
+            tmp_date_of_birth_and_sex,
+            BIRTH_COUNTRY_PART_LENGTH,
+            tmp_birth_country
+    );
+	
+	free(tmp_surname);
+	free(tmp_name);
+	free(tmp_date_of_birth_and_sex);
+	free(tmp_birth_country);
 
     size_t even_value = 0;
     size_t odd_value = 0;
@@ -195,7 +206,7 @@ bool cf_tax_code_is_valid(person* param, char* expected, size_t omocode_level) {
                 free(generated);
                 generated = NULL;
             }
-            cf_tax_code_free(tc);
+            cf_tax_code_free(&tc);
         }
     }
     return result;
@@ -215,7 +226,7 @@ char* cf_encode(tax_code* param) {
             BIRTH_COUNTRY_PART_LENGTH, //
             param->birth_country, //
             param->control_character
-           );
+    );
 
     return result;
 }
@@ -226,7 +237,7 @@ bool cf_tax_code_have_omocode(const char* param) {
         const size_t length = strlen(param);
         for(size_t i = 0; i < sizeof(omocode_positions) / sizeof(omocode_positions[0]); i++) {
             if(omocode_positions[i] <= length) {
-               if(param[omocode_positions[i]] != '\0' && //
+               if(param[omocode_positions[i]] != '\0' &&
                   !isdigit(param[omocode_positions[i]])) {
                     result = true;
                     break;
@@ -237,24 +248,44 @@ bool cf_tax_code_have_omocode(const char* param) {
     return result;
 }
 
-void cf_person_free(person* param) {
-    if(param) {
-        if(param->surname) free(param->surname), param->surname = NULL;
-        if(param->name) free(param->name), param->name = NULL;
-        if(param->birth_day) free(param->birth_day), param->birth_day = NULL;
-        if(param->birth_country) free(param->birth_country), param->birth_country = NULL;
-        free(param);
-        param = NULL;
+void cf_person_free(person** param) {
+    if (param && *param) {
+        if ((*param)->surname) {
+            free((*param)->surname);
+            (*param)->surname = NULL;
+        }
+        if ((*param)->name) {
+            free((*param)->name);
+            (*param)->name = NULL;
+        }
+        if ((*param)->birth_country) {
+            free((*param)->birth_country);
+            (*param)->birth_country = NULL;
+        }
+        free(*param);
+        *param = NULL;
     }
 }
 
-void cf_tax_code_free(tax_code* param) {
-    if(param) {
-        if(param->surname) free(param->surname), param->surname = NULL;
-        if(param->name) free(param->name), param->name = NULL;
-        if(param->date_of_birth_and_sex) free(param->date_of_birth_and_sex), param->date_of_birth_and_sex = NULL;
-        if(param->birth_country) free(param->birth_country), param->birth_country = NULL;
-        free(param);
-        param = NULL;
+void cf_tax_code_free(tax_code** param) {
+    if (param && *param) {
+        if ((*param)->surname) {
+            free((*param)->surname);
+            (*param)->surname = NULL;
+        }
+        if ((*param)->name) {
+            free((*param)->name);
+            (*param)->name = NULL;
+        }
+        if ((*param)->date_of_birth_and_sex) {
+            free((*param)->date_of_birth_and_sex);
+            (*param)->date_of_birth_and_sex = NULL;
+        }
+        if ((*param)->birth_country) {
+            free((*param)->birth_country);
+            (*param)->birth_country = NULL;
+        }
+        free(*param);
+        *param = NULL;
     }
 }

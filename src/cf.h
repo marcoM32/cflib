@@ -138,8 +138,8 @@ char* cf_encode(tax_code*);
 
 bool cf_tax_code_have_omocode(const char*);
 
-void cf_person_free(person*);
+void cf_person_free(person**);
 
-void cf_tax_code_free(tax_code*);
+void cf_tax_code_free(tax_code**);
 
 #endif // CF_HEADER
