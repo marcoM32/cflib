@@ -22,7 +22,7 @@ int main(void) {
 	char* result = cf_encode(cf);
 	printf("CF: %s", result);
 	free(result);
-	cf_tax_code_free(cf);
+	cf_tax_code_free(&cf);
 }
 ```
 
@@ -49,7 +49,7 @@ int main(void) {
 	char* result = cf_encode(cf);
 	printf("CF: %s", result);
 	free(result);
-	cf_tax_code_free(cf);
+	cf_tax_code_free(&cf);
 }
 ```
 
